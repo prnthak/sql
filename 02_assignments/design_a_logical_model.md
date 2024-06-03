@@ -5,8 +5,12 @@ Create a logical model for a small bookstore. 📚
 
 At the minimum it should have employee, order, sales, customer, and book entities (tables). Determine sensible column and table design based on what you know about these concepts. Keep it simple, but work out sensible relationships to keep tables reasonably sized. Include a date table. There are several tools online you can use, I'd recommend [_Draw.io_](https://www.drawio.com/) or [_LucidChart_](https://www.lucidchart.com/pages/).
 
+See file in DSI folder labelled "Assign_chart_without_dates.png"
+
 ## Question 2
 We want to create employee shifts, splitting up the day into morning and evening. Add this to the ERD.
+
+See file in DSI folder labelled "Assign_chart_with_dates.png"
 
 ## Question 3
 The store wants to keep customer addresses. Propose two architectures for the CUSTOMER_ADDRESS table, one that will retain changes, and another that will overwrite. Which is type 1, which is type 2?
@@ -15,7 +19,33 @@ _Hint, search type 1 vs type 2 slowly changing dimensions._
 
 Bonus: Are there privacy implications to this, why or why not?
 ```
-Your answer...
+Architecture Type 1 - Replaces Data
+
+Table: CustomerAddress
+
+CustomerID (Foreign Key)
+StreetAddress
+City
+State
+PostalCode
+
+
+Architecture Type 2 - Replaces data
+Table: CustomerAddress
+
+CustomerAddressID (Primary Key)
+CustomerID (Foreign Key)
+StreetAddress
+City
+State
+PostalCode
+StartDate (When this address became valid)
+EndDate (When this address was superseded)
+IsCurrent (Boolean to indicate current address)
+
+A new row/data is added each time there is a change of address, with StartDate and EndDate fields to track the period during which each address was valid. This will keep record of all changes. Although this will come with come privacy implications as greater volume of data storage presents with greater exposure threat to unauthourized users. More data requires more protections.
+
+...
 ```
 
 ## Question 4
@@ -23,7 +53,9 @@ Review the AdventureWorks Schema [here](https://i.stack.imgur.com/LMu4W.gif)
 
 Highlight at least two differences between it and your ERD. Would you change anything in yours?
 ```
-Your answer...
+1)My ERD is simplistic, as if the managment was under one peron. However AdventureWorks Schema is built for multiple departments (multiple users) HR, Purchasing etc. It is more complex. 
+
+2)In my ERD the a single table is used for multiple applications. Address and contact info is in the same table for the bookstore ERD, but broken down into small tables for AdventureWorks possibly to avoid unnecessary exposure of private data for unauthorized users. 
 ```
 
 # Criteria

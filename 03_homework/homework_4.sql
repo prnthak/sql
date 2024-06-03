@@ -5,7 +5,7 @@ We tell them, no problem! We can produce a list with all of the appropriate deta
 Using the following syntax you create our super cool and not at all needy manager a list:
 
 SELECT 
-product_name || ', ' || product_size|| ' (' || product_qty_type || ')'
+product_name || ', ' || COALESCE(product_size, '') || ' (' || COALESCE(product_qty_type, 'unit') || ')' AS list
 FROM product
 
 But wait! The product table has some bad data (a few NULL values). 
@@ -25,20 +25,56 @@ All the other rows will remain the same.) */
 visits to the farmer’s market (labeling each market date with a different number). 
 Each customer’s first visit is labeled 1, second visit is labeled 2, etc. 
 
+SELECT 
+    customer_id, 
+    market_date, 
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
+FROM 
+    customer_purchases;
+
+
 You can either display all rows in the customer_purchases table, with the counter changing on
 each new market date for each customer, or select only the unique market dates per customer 
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
+
+/*
+SELECT 
+    customer_id, 
+    market_date, 
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date) AS visit_number
+FROM 
+    customer_purchases;
+
+    */
 
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
 only the customer’s most recent visit. */
 
+/*
+SELECT 
+    customer_id, 
+    market_date, 
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS reversed_visit_number
+FROM 
+    customer_purchases;
+
+    */
+
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
+/*
+
+SELECT DISTINCT 
+customer_id, 
+product_id, 
+COUNT(*) OVER(PARTITION BY customer_id, product_id) AS repeated_purchases
+From customer_purchases
+*/
 
 
 
@@ -53,11 +89,21 @@ Remove any trailing or leading whitespaces. Don't just use a case statement for 
 | Habanero Peppers - Organic | Organic     |
 
 Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
-
-
+/*
+SELECT 
+    product_name,
+    Ltrim(SUBSTR(product_name, INSTR(product_name, '-')+1)) AS description
+FROM 
+    product
+*/
 
 /* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
 
+/*
+SELECT product_name, product_size
+FROM product
+WHERE product_size REGEXP '[0-9]'
+*/
 
 
 -- UNION
@@ -69,7 +115,29 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 "best day" and "worst day"; 
 3) Query the second temp table twice, once for the best day, once for the worst day, 
 with a UNION binding them. */
+/*
+with daily_sales as(
+SELECT market_date, SUM(quantity*cost_to_customer_per_qty) as total_sales
+FROM customer_purchases
+Group by market_date
+),
+ranked_sales_up AS(
+SELECT market_date, total_sales, rank() over (order by total_sales DESC) as ranking 
+From daily_sales),
+ranked_sales_down AS(
+SELECT market_date, total_sales, rank() over (order by total_sales ASC) as ranking 
+From daily_sales)  
 
+Select market_date, total_sales, 'BEST-DAY' AS sales_status 
+From ranked_sales_up 
+WHERE ranking = 1 
+
+UNION
+
+Select market_date, total_sales, 'BEST-DAY' AS sales_status 
+From ranked_sales_down
+WHERE ranking = 1 
+*/
 
 
 
